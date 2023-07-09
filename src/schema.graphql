@@ -1834,22 +1834,6 @@ type Mutation {
   createUser(input: CreateUserInput!): User!
   activateUser(input: ActivateUserInput!): User!
   updateUserPassword(input: ResetUserPasswordInput!): String
-}
-
-input LoginInput {
-  email: String!
-  password: String!
-}
-
-input ActivationTokenInput {
-  email: String!
-}
-
-input ResetPasswordInput {
-  email: String!
-}
-
-extend type Mutation {
   createAuthenticationToken(input: LoginInput!): String
   createActivationToken(input: ActivationTokenInput!): String
   createPasswordResetToken(input: ResetPasswordInput!): String
@@ -1881,6 +1865,19 @@ input CreateRoutineExerciseInput {
 
 extend type Mutation {
   CreateRoutineExercise(input: CreateRoutineExerciseInput!): RoutineExercise
+}
+
+input LoginInput {
+  email: String!
+  password: String!
+}
+
+input ActivationTokenInput {
+  email: String!
+}
+
+input ResetPasswordInput {
+  email: String!
 }
 
 input CreateWorkoutLogInput {

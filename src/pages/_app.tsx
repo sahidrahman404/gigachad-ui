@@ -22,7 +22,10 @@ export default function App({
     store.notify();
   }, [environment, pageProps.initialRecords]);
 
-  return (
+  //@ts-ignore
+  const getLayout = Component.getLayout || ((page) => page);
+
+  return getLayout(
     <RelayEnvironmentProvider environment={environment}>
       <Component {...pageProps} />
     </RelayEnvironmentProvider>
