@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<9d65c1629f86a25b4de1299160858ec4>>
+ * @generated SignedSource<<9ed9f669ff7d0fdc722a8359ed96f288>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -17,7 +17,15 @@ export type CreateAuthenticationTokenMutation$variables = {
   input: LoginInput;
 };
 export type CreateAuthenticationTokenMutation$data = {
-  readonly tokenPlainText: string | null;
+  readonly createAuthenticationToken: {
+    readonly tokenPlainText: string;
+    readonly user: {
+      readonly activated: number;
+      readonly email: string;
+      readonly id: string;
+      readonly username: string;
+    };
+  } | null;
 };
 export type CreateAuthenticationTokenMutation = {
   response: CreateAuthenticationTokenMutation$data;
@@ -34,7 +42,7 @@ var v0 = [
 ],
 v1 = [
   {
-    "alias": "tokenPlainText",
+    "alias": null,
     "args": [
       {
         "kind": "Variable",
@@ -42,8 +50,58 @@ v1 = [
         "variableName": "input"
       }
     ],
-    "kind": "ScalarField",
+    "concreteType": "AuthenticationToken",
+    "kind": "LinkedField",
     "name": "createAuthenticationToken",
+    "plural": false,
+    "selections": [
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "tokenPlainText",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "concreteType": "User",
+        "kind": "LinkedField",
+        "name": "user",
+        "plural": false,
+        "selections": [
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "id",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "username",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "email",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "activated",
+            "storageKey": null
+          }
+        ],
+        "storageKey": null
+      }
+    ],
     "storageKey": null
   }
 ];
@@ -65,16 +123,16 @@ return {
     "selections": (v1/*: any*/)
   },
   "params": {
-    "cacheID": "f99ff5c515a1a1db8260de5b5dae82bc",
+    "cacheID": "5a4f6ed48053d785a4fef44840eb2334",
     "id": null,
     "metadata": {},
     "name": "CreateAuthenticationTokenMutation",
     "operationKind": "mutation",
-    "text": "mutation CreateAuthenticationTokenMutation(\n  $input: LoginInput!\n) {\n  tokenPlainText: createAuthenticationToken(input: $input)\n}\n"
+    "text": "mutation CreateAuthenticationTokenMutation(\n  $input: LoginInput!\n) {\n  createAuthenticationToken(input: $input) {\n    tokenPlainText\n    user {\n      id\n      username\n      email\n      activated\n    }\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "67a3c862eae47989dd1193fb1dd088fd";
+(node as any).hash = "29c1122ace645931e934e8b4c67b6b7b";
 
 export default node;

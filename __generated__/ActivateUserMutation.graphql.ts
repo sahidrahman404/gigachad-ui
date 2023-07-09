@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<03f2887d81b7f6890e0e0c32be58ce2d>>
+ * @generated SignedSource<<29d294ac43253c946cc290695ed4b86c>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -17,9 +17,12 @@ export type ActivateUserMutation$variables = {
 };
 export type ActivateUserMutation$data = {
   readonly activateUser: {
-    readonly activated: number;
-    readonly id: string;
-  };
+    readonly tokenPlainText: string;
+    readonly user: {
+      readonly id: string;
+      readonly username: string;
+    };
+  } | null;
 };
 export type ActivateUserMutation = {
   response: ActivateUserMutation$data;
@@ -44,7 +47,7 @@ v1 = [
         "variableName": "input"
       }
     ],
-    "concreteType": "User",
+    "concreteType": "AuthenticationToken",
     "kind": "LinkedField",
     "name": "activateUser",
     "plural": false,
@@ -53,14 +56,32 @@ v1 = [
         "alias": null,
         "args": null,
         "kind": "ScalarField",
-        "name": "id",
+        "name": "tokenPlainText",
         "storageKey": null
       },
       {
         "alias": null,
         "args": null,
-        "kind": "ScalarField",
-        "name": "activated",
+        "concreteType": "User",
+        "kind": "LinkedField",
+        "name": "user",
+        "plural": false,
+        "selections": [
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "id",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "username",
+            "storageKey": null
+          }
+        ],
         "storageKey": null
       }
     ],
@@ -85,16 +106,16 @@ return {
     "selections": (v1/*: any*/)
   },
   "params": {
-    "cacheID": "76d07d875533c4f68ac4aabeb92e9480",
+    "cacheID": "d3981adf7a32e72edcb3883de68dbe30",
     "id": null,
     "metadata": {},
     "name": "ActivateUserMutation",
     "operationKind": "mutation",
-    "text": "mutation ActivateUserMutation(\n  $input: ActivateUserInput!\n) {\n  activateUser(input: $input) {\n    id\n    activated\n  }\n}\n"
+    "text": "mutation ActivateUserMutation(\n  $input: ActivateUserInput!\n) {\n  activateUser(input: $input) {\n    tokenPlainText\n    user {\n      id\n      username\n    }\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "3e0805928c0ed8ab86c35b5261120148";
+(node as any).hash = "ff78f4a9ccbde27421a3a4469fc759c2";
 
 export default node;

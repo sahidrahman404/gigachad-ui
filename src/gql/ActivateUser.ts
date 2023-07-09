@@ -3,8 +3,11 @@ import { graphql } from "relay-runtime";
 const ActivateUserMutation = graphql`
   mutation ActivateUserMutation($input: ActivateUserInput!) {
     activateUser(input: $input) {
-      id
-      activated
+      tokenPlainText
+      user {
+        id
+        username
+      }
     }
   }
 `;

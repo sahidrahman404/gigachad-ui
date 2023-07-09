@@ -1,3 +1,6 @@
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 import {
   Form,
   FormControl,
@@ -6,26 +9,21 @@ import {
   FormLabel,
   FormMessage,
 } from "../ui/form";
-import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { useMutation } from "react-relay";
-import Link from "next/link";
-import { useState } from "react";
+import { Button } from "../ui/button";
 import { GqlErrorStatus, parseGqlError } from "@/lib/error";
+import { useState } from "react";
 import { useRouter } from "next/router";
-import CreateUserMutation from "@/gql/CreateUser";
-import { CreateUserMutation as CreateUserMutationType } from "../../../__generated__/CreateUserMutation.graphql";
-import { ShowPasswordCheckBox, showPasswordAtom } from "./ShowPasswordCheckBox";
+import { useMutation } from "react-relay";
+import UpdatetUserPasswordMutation from "@/gql/UpdateUserPassword";
+import { UpdateUserPasswordMutation } from "../../../__generated__/UpdateUserPasswordMutation.graphql";
+import Link from "next/link";
 import { useAtomValue } from "jotai";
+import { ShowPasswordCheckBox, showPasswordAtom } from "./ShowPasswordCheckBox";
 
 const formSchema = z
   .object({
-    email: z.string().email(),
-    name: z.string().min(3),
-    username: z.string().min(5).max(72),
+    token: z.string().min(26).max(26),
     password: z.string().min(8).max(72),
     confirmPassword: z.string().min(8).max(72),
   })
@@ -34,33 +32,33 @@ const formSchema = z
     path: ["confirmPassword"],
   });
 
-export function SignupForm() {
+export function ResetPasswordForm() {
   const router = useRouter();
+
   const showPassword = useAtomValue(showPasswordAtom);
+
   const [status, setStatus] = useState<GqlErrorStatus>({
     error: null,
     message: null,
   });
-  const [commitMutation, isMutationInFlight] =
-    useMutation<CreateUserMutationType>(CreateUserMutation);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: "",
-      name: "",
-      username: "",
+      token: "",
       password: "",
       confirmPassword: "",
     },
   });
+
+  const [commitMutation, isMutationInFlight] =
+    useMutation<UpdateUserPasswordMutation>(UpdatetUserPasswordMutation);
+
   function onSubmit(values: z.infer<typeof formSchema>) {
     commitMutation({
       variables: {
         input: {
-          email: values.email,
-          name: values.name,
-          username: values.username,
-          hashedPassword: values.password,
+          tokenPlainText: values.token,
+          password: values.password,
         },
       },
       onError: (err) => {
@@ -70,10 +68,8 @@ export function SignupForm() {
           message: err.message,
         }));
       },
-      onCompleted: (res, err) => {
-        if (!err) {
-          router.push(`auth/verify?mail=${res.createUser.email}`);
-        }
+      onCompleted: (_res, _err) => {
+        router.push(`/auth?mode=signin&reset=success`);
       },
     });
   }
@@ -82,77 +78,43 @@ export function SignupForm() {
       <div className="p-4 sm:p-7">
         <div className="text-center">
           <h1 className="block text-2xl font-bold text-gray-800 dark:text-white">
-            Sign up
+            We sent you reset token
           </h1>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            Already have an account?{" "}
-            <Link
-              className="text-blue-600 decoration-2 hover:underline font-medium"
-              href="/auth/?mode=signin"
-            >
-              Sign in here
-            </Link>
+            Please enter the reset token and your new password below
           </p>
         </div>
 
         <div className="mt-5">
-          <div className="py-3 flex items-center text-xs text-gray-400 uppercase before:flex-[1_1_0%] before:border-t before:border-gray-200 before:mr-6 after:flex-[1_1_0%] after:border-t after:border-gray-200 after:ml-6 dark:text-gray-500 dark:before:border-gray-600 dark:after:border-gray-600">
-            Or
-          </div>
-
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
-                name="email"
+                name="token"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>Token</FormLabel>
                     <FormControl>
-                      <Input placeholder="jenna@example.com" {...field} />
+                      <Input {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="jenna" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="username"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Username</FormLabel>
-                    <FormControl>
-                      <Input placeholder="jenna123" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
+              <Link
+                className="text-[0.8rem] text-blue-600 decoration-2 hover:underline font-medium block"
+                href={`/auth?forgot=true`}
+              >
+                Didn't receive token?
+              </Link>
               <FormField
                 control={form.control}
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel>New Password</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="5tr0n9p@5sw0rd"
                         type={showPassword ? "text" : "password"}
                         {...field}
                       />
@@ -161,16 +123,14 @@ export function SignupForm() {
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name="confirmPassword"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Confirm Password</FormLabel>
+                    <FormLabel>Confirm New Password</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="5tr0n9p@5sw0rd"
                         type={showPassword ? "text" : "password"}
                         {...field}
                       />

@@ -1,7 +1,33 @@
 import Link from "next/link";
 import { Button } from "./ui/button";
+import { GetUserQuery$data } from "../../__generated__/GetUserQuery.graphql";
+import { getRedirectUrl } from "@/lib/utils";
+import { atom, useAtomValue } from "jotai";
+import { useMemo } from "react";
 
-export default function Hero() {
+function useRedirect(data: GetUserQuery$data) {
+  const redirectUrlAtom = useMemo(() => atom(""), []);
+  const redirect = useAtomValue(redirectUrlAtom);
+
+  redirectUrlAtom.onMount = (setRedirect) => {
+    const redirectUrl = getRedirectUrl(data);
+    if (redirectUrl === "") {
+      setRedirect("/auth?mode=signup");
+      return;
+    }
+    setRedirect(redirectUrl);
+  };
+
+  return redirect;
+}
+
+interface Props {
+  user: GetUserQuery$data;
+}
+
+export default function Hero(props: Props) {
+  const redirect = useRedirect(props.user);
+
   return (
     <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8">
       <div className="grid md:grid-cols-2 gap-4 md:gap-8 xl:gap-20 md:items-center">
@@ -20,7 +46,7 @@ export default function Hero() {
             <Button asChild size="lg">
               <Link
                 className="inline-flex justify-center items-center gap-x-3 text-center bg-blue-600 hover:bg-blue-700 border border-transparent text-sm lg:text-base text-white font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:ring-offset-white transition py-3 px-4 dark:focus:ring-offset-gray-800"
-                href="/auth?q=signup"
+                href={redirect}
               >
                 Get started
                 <svg

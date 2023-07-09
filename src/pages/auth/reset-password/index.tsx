@@ -1,29 +1,21 @@
 import AuthLayout from "@/components/auth/AuthLayout";
-import { VerificationForm } from "@/components/auth/VerificationForm";
+import { ResetPasswordForm } from "@/components/auth/ResetPasswordForm";
 import GetUserQuery from "@/gql/GetUser";
-import { useRouter } from "next/router";
+import router from "next/router";
 import { ReactNode } from "react";
 import { useLazyLoadQuery } from "react-relay";
 import { GetUserQuery as GetUserQueryType } from "../../../../__generated__/GetUserQuery.graphql";
-import { ResendVerificationForm } from "@/components/auth/ResendVerificationForm";
 
-export default function VerificationPage() {
-  const router = useRouter();
+export default function ResetPasswordPage() {
   const user = useLazyLoadQuery<GetUserQueryType>(GetUserQuery, {});
 
   if (user.getUser?.activated === 1) {
     router.push(`/dashboard/${user.getUser?.username}`);
   }
 
-  const isResend = router.query["resend"] ?? "";
-
-  if (isResend) {
-    return <ResendVerificationForm />;
-  }
-
-  return <VerificationForm />;
+  return <ResetPasswordForm />;
 }
 
-VerificationPage.getLayout = function getLayout(page: ReactNode) {
+ResetPasswordPage.getLayout = function getLayout(page: ReactNode) {
   return <AuthLayout>{page}</AuthLayout>;
 };

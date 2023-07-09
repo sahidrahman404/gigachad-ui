@@ -2,7 +2,15 @@ import { graphql } from "relay-runtime";
 
 const CreateAuthenticationTokenMutation = graphql`
   mutation CreateAuthenticationTokenMutation($input: LoginInput!) {
-    tokenPlainText: createAuthenticationToken(input: $input)
+    createAuthenticationToken(input: $input) {
+      tokenPlainText
+      user {
+        id
+        username
+        email
+        activated
+      }
+    }
   }
 `;
 export default CreateAuthenticationTokenMutation;

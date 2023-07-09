@@ -13,11 +13,14 @@ import {
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { GqlErrorStatus, parseGqlError } from "@/lib/error";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useMutation } from "react-relay";
 import { useRouter } from "next/router";
 import CreateAuthenticationTokenMutation from "@/gql/CreateAuthenticationToken";
 import wretch from "wretch";
+import { CreateAuthenticationTokenMutation as CreateAuthenticationTokenMutationToken } from "../../../__generated__/CreateAuthenticationTokenMutation.graphql";
+import { atom, useAtomValue } from "jotai";
+import { ShowPasswordCheckBox, showPasswordAtom } from "./ShowPasswordCheckBox";
 
 const formSchema = z.object({
   email: z.string().email(),
@@ -26,6 +29,17 @@ const formSchema = z.object({
 
 export function SigninForm() {
   const router = useRouter();
+  const showPassword = useAtomValue(showPasswordAtom);
+
+  const isPasswordReseted = router.query["reset"] ?? "";
+  const signInTitleClass = "mt-2 text-sm text-gray-600 dark:text-gray-400";
+
+  const forgotPathAtom = useMemo(() => atom(""), []);
+  const forgotPath = useAtomValue(forgotPathAtom);
+  forgotPathAtom.onMount = (setPathAtom) => {
+    setPathAtom(router.asPath);
+  };
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -33,13 +47,15 @@ export function SigninForm() {
       password: "",
     },
   });
+
   const [status, setStatus] = useState<GqlErrorStatus>({
     error: null,
     message: null,
   });
-  const [commitMutation, isMutationInFlight] = useMutation(
-    CreateAuthenticationTokenMutation
-  );
+  const [commitMutation, isMutationInFlight] =
+    useMutation<CreateAuthenticationTokenMutationToken>(
+      CreateAuthenticationTokenMutation
+    );
   function onSubmit(values: z.infer<typeof formSchema>) {
     commitMutation({
       variables: {
@@ -55,14 +71,24 @@ export function SigninForm() {
           message: err.message,
         }));
       },
-      onCompleted: (res, err) => {
-        // @ts-ignore
-        const tokenPlainText = res["tokenPlainText"];
-        wretch(`http://localhost:4444/v1/tokens/set/${tokenPlainText}`)
-          .options({ credentials: "include", mode: "cors" })
-          .get()
-          .json((res) => console.log(res));
-        router.push("/dashboard/5");
+      onCompleted: (res) => {
+        if (res.createAuthenticationToken?.user.activated === 1) {
+          const tokenPlainText = res.createAuthenticationToken?.tokenPlainText;
+          wretch(`http://localhost:4444/v1/tokens/set/${tokenPlainText}`)
+            .options({ credentials: "include", mode: "cors" })
+            .get()
+            .json((res) => console.log(res));
+          router.push(
+            `/dashboard/${res.createAuthenticationToken.user.username}`
+          );
+          return;
+        }
+
+        if (res.createAuthenticationToken?.user.activated === 0) {
+          router.push(
+            `/auth/verify/?mail=${res.createAuthenticationToken.user.email}`
+          );
+        }
       },
     });
   }
@@ -71,17 +97,25 @@ export function SigninForm() {
       <div className="p-4 sm:p-7">
         <div className="text-center">
           <h1 className="block text-2xl font-bold text-gray-800 dark:text-white">
-            Sign in
+            {isPasswordReseted === "success"
+              ? "Password changed successfully!"
+              : "Sign in"}
           </h1>
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            Don&#39;t have an account yet?{" "}
-            <Link
-              className="text-blue-600 decoration-2 hover:underline font-medium"
-              href="auth/?q=signup"
-            >
-              Sign up here
-            </Link>
-          </p>
+          {isPasswordReseted === "success" ? (
+            <p className={signInTitleClass}>
+              Please login to your account again
+            </p>
+          ) : (
+            <p className={signInTitleClass}>
+              Don&#39;t have an account yet?{" "}
+              <Link
+                className="text-blue-600 decoration-2 hover:underline font-medium"
+                href="auth/?mode=signup"
+              >
+                Sign up here
+              </Link>
+            </p>
+          )}
         </div>
 
         <div className="mt-5">
@@ -112,12 +146,23 @@ export function SigninForm() {
                   <FormItem>
                     <FormLabel>Password</FormLabel>
                     <FormControl>
-                      <Input placeholder="strongpa5word" {...field} />
+                      <Input
+                        placeholder="strongpa5word"
+                        type={showPassword ? "text" : "password"}
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+              <ShowPasswordCheckBox />
+              <Link
+                className="text-sm text-blue-600 decoration-2 hover:underline font-medium block"
+                href={`${forgotPath}&forgot=true`}
+              >
+                Forgot password?
+              </Link>
               <p>{status.message && parseGqlError(status.message)}</p>
               <Button type="submit" disabled={isMutationInFlight}>
                 Submit

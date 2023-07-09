@@ -898,6 +898,8 @@ type Query {
     """
     where: WorkoutLogWhereInput
   ): WorkoutLogConnection!
+
+  getUser: User
 }
 type Routine implements Node {
   id: ID!
@@ -1821,6 +1823,11 @@ input WorkoutWhereInput {
   hasWorkoutLogsWith: [WorkoutLogWhereInput!]
 }
 
+type AuthenticationToken {
+  user: User!
+  tokenPlainText: String!
+}
+
 input ActivateUserInput {
   tokenPlainText: String!
 }
@@ -1832,11 +1839,13 @@ input ResetUserPasswordInput {
 
 type Mutation {
   createUser(input: CreateUserInput!): User!
-  activateUser(input: ActivateUserInput!): User!
+  activateUser(input: ActivateUserInput!): AuthenticationToken
   updateUserPassword(input: ResetUserPasswordInput!): String
-  createAuthenticationToken(input: LoginInput!): String
+  createAuthenticationToken(input: LoginInput!): AuthenticationToken
   createActivationToken(input: ActivationTokenInput!): String
   createPasswordResetToken(input: ResetPasswordInput!): String
+  CreateWorkoutLog(input: CreateWorkoutLogInput!): WorkoutLog
+  CreateRoutineExercise(input: CreateRoutineExerciseInput!): RoutineExercise
 }
 
 type Set {
@@ -1863,10 +1872,6 @@ input CreateRoutineExerciseInput {
   userID: ID
 }
 
-extend type Mutation {
-  CreateRoutineExercise(input: CreateRoutineExerciseInput!): RoutineExercise
-}
-
 input LoginInput {
   email: String!
   password: String!
@@ -1885,8 +1890,4 @@ input CreateWorkoutLogInput {
   exerciseID: ID
   workoutID: ID
   userID: ID
-}
-
-extend type Mutation {
-  CreateWorkoutLog(input: CreateWorkoutLogInput!): WorkoutLog
 }

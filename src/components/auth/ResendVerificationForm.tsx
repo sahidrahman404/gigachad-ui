@@ -12,27 +12,18 @@ import {
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { GqlErrorStatus, parseGqlError } from "@/lib/error";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/router";
 import { useMutation } from "react-relay";
-import ActivateUserMutation from "@/gql/ActivateUser";
-import { ActivateUserMutation as ActivateUserMutationType } from "../../../__generated__/ActivateUserMutation.graphql";
-import wretch from "wretch";
-import Link from "next/link";
-import { atom, useAtomValue } from "jotai";
+import CreateActivationTokenMutation from "@/gql/CreateActivationToken";
+import { CreateActivationTokenMutation as CreateActivationTokenMutationType } from "../../../__generated__/CreateActivationTokenMutation.graphql";
 
 const formSchema = z.object({
-  token: z.string().min(26).max(26),
+  email: z.string().email(),
 });
 
-export function VerificationForm() {
+export function ResendVerificationForm() {
   const router = useRouter();
-  const pathAtom = useMemo(() => atom(""), []);
-  const path = useAtomValue(pathAtom);
-  pathAtom.onMount = (setPathAtom) => {
-    setPathAtom(router.asPath);
-  };
-  const email = router.query["mail"] ?? "";
   const [status, setStatus] = useState<GqlErrorStatus>({
     error: null,
     message: null,
@@ -40,17 +31,20 @@ export function VerificationForm() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      token: "",
+      email: "",
     },
   });
 
   const [commitMutation, isMutationInFlight] =
-    useMutation<ActivateUserMutationType>(ActivateUserMutation);
+    useMutation<CreateActivationTokenMutationType>(
+      CreateActivationTokenMutation
+    );
+
   function onSubmit(values: z.infer<typeof formSchema>) {
     commitMutation({
       variables: {
         input: {
-          tokenPlainText: values.token,
+          email: values.email,
         },
       },
       onError: (err) => {
@@ -61,12 +55,7 @@ export function VerificationForm() {
         }));
       },
       onCompleted: (res, err) => {
-        const tokenPlainText = res.activateUser?.tokenPlainText;
-        wretch(`http://localhost:4444/v1/tokens/set/${tokenPlainText}`)
-          .options({ credentials: "include", mode: "cors" })
-          .get()
-          .json((res) => console.log(res));
-        router.push(`/dashboard/${res.activateUser?.user.username}`);
+        router.push(`/auth/verify?mail=${values.email}`);
       },
     });
   }
@@ -75,10 +64,10 @@ export function VerificationForm() {
       <div className="p-4 sm:p-7">
         <div className="text-center">
           <h1 className="block text-2xl font-bold text-gray-800 dark:text-white">
-            We sent you a token
+            Resend your token
           </h1>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            {`Enter it below to verify ${email}`}
+            {`Please enter email address of your registration below`}
           </p>
         </div>
 
@@ -87,10 +76,10 @@ export function VerificationForm() {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
-                name="token"
+                name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Token</FormLabel>
+                    <FormLabel>Email</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
@@ -98,12 +87,6 @@ export function VerificationForm() {
                   </FormItem>
                 )}
               />
-              <Link
-                className="text-sm text-blue-600 decoration-2 hover:underline font-medium block"
-                href={`${path}&resend=true`}
-              >
-                Didn't receive token?
-              </Link>
               <p>{status.message && parseGqlError(status.message)}</p>
               <Button type="submit" disabled={isMutationInFlight}>
                 Submit
