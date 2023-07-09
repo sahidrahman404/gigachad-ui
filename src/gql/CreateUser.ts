@@ -4,6 +4,7 @@ const CreateUserMutation = graphql`
   mutation CreateUserMutation($input: CreateUserInput!) {
     createUser(input: $input) {
       id
+      email
     }
   }
 `;

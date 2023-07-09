@@ -17,6 +17,7 @@ import { useState } from "react";
 import { GqlErrorStatus, parseGqlError } from "@/lib/error";
 import { useRouter } from "next/router";
 import CreateUserMutation from "@/gql/CreateUser";
+import { CreateUserMutation as CreateUserMutationType } from "../../../__generated__/CreateUserMutation.graphql";
 
 const formSchema = z.object({
   email: z.string().email(),
@@ -31,7 +32,8 @@ export function SignupForm() {
     error: null,
     message: null,
   });
-  const [commitMutation, isMutationInFlight] = useMutation(CreateUserMutation);
+  const [commitMutation, isMutationInFlight] =
+    useMutation<CreateUserMutationType>(CreateUserMutation);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -59,8 +61,9 @@ export function SignupForm() {
         }));
       },
       onCompleted: (res, err) => {
-        console.log(res);
-        router.push("/dashboard/5");
+        if (!err) {
+          router.push(`auth/verify?mail=${res.createUser.email}`);
+        }
       },
     });
   }

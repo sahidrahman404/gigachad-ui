@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<57f0cf1b8eea9f74b2fc1a112949f46e>>
+ * @generated SignedSource<<03f2887d81b7f6890e0e0c32be58ce2d>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -9,29 +9,21 @@
 // @ts-nocheck
 
 import { ConcreteRequest, Mutation } from 'relay-runtime';
-export type CreateUserInput = {
-  email: string;
-  exerciseIDs?: ReadonlyArray<string> | null;
-  hashedPassword: string;
-  name: string;
-  routineIDs?: ReadonlyArray<string> | null;
-  tokenIDs?: ReadonlyArray<string> | null;
-  username: string;
-  workoutIDs?: ReadonlyArray<string> | null;
-  workoutLogIDs?: ReadonlyArray<string> | null;
+export type ActivateUserInput = {
+  tokenPlainText: string;
 };
-export type CreateUserMutation$variables = {
-  input: CreateUserInput;
+export type ActivateUserMutation$variables = {
+  input: ActivateUserInput;
 };
-export type CreateUserMutation$data = {
-  readonly createUser: {
-    readonly email: string;
+export type ActivateUserMutation$data = {
+  readonly activateUser: {
+    readonly activated: number;
     readonly id: string;
   };
 };
-export type CreateUserMutation = {
-  response: CreateUserMutation$data;
-  variables: CreateUserMutation$variables;
+export type ActivateUserMutation = {
+  response: ActivateUserMutation$data;
+  variables: ActivateUserMutation$variables;
 };
 
 const node: ConcreteRequest = (function(){
@@ -54,7 +46,7 @@ v1 = [
     ],
     "concreteType": "User",
     "kind": "LinkedField",
-    "name": "createUser",
+    "name": "activateUser",
     "plural": false,
     "selections": [
       {
@@ -68,7 +60,7 @@ v1 = [
         "alias": null,
         "args": null,
         "kind": "ScalarField",
-        "name": "email",
+        "name": "activated",
         "storageKey": null
       }
     ],
@@ -80,7 +72,7 @@ return {
     "argumentDefinitions": (v0/*: any*/),
     "kind": "Fragment",
     "metadata": null,
-    "name": "CreateUserMutation",
+    "name": "ActivateUserMutation",
     "selections": (v1/*: any*/),
     "type": "Mutation",
     "abstractKey": null
@@ -89,20 +81,20 @@ return {
   "operation": {
     "argumentDefinitions": (v0/*: any*/),
     "kind": "Operation",
-    "name": "CreateUserMutation",
+    "name": "ActivateUserMutation",
     "selections": (v1/*: any*/)
   },
   "params": {
-    "cacheID": "2e8f25662bc157aade586ac76c477713",
+    "cacheID": "76d07d875533c4f68ac4aabeb92e9480",
     "id": null,
     "metadata": {},
-    "name": "CreateUserMutation",
+    "name": "ActivateUserMutation",
     "operationKind": "mutation",
-    "text": "mutation CreateUserMutation(\n  $input: CreateUserInput!\n) {\n  createUser(input: $input) {\n    id\n    email\n  }\n}\n"
+    "text": "mutation ActivateUserMutation(\n  $input: ActivateUserInput!\n) {\n  activateUser(input: $input) {\n    id\n    activated\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "35c703fc22777f1144a258b8ab64aa92";
+(node as any).hash = "3e0805928c0ed8ab86c35b5261120148";
 
 export default node;
