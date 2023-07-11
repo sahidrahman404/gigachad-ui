@@ -11,18 +11,24 @@ import {
 } from "../ui/form";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
-import { GqlErrorStatus, parseGqlError } from "@/lib/error";
-import { useMemo, useState } from "react";
+import { FormErrorMessage, GqlErrorStatus } from "@/lib/FormErrorMessage";
+import { useMemo } from "react";
 import { useRouter } from "next/router";
 import { useMutation } from "react-relay";
 import ActivateUserMutation from "@/gql/ActivateUser";
 import { ActivateUserMutation as ActivateUserMutationType } from "../../../__generated__/ActivateUserMutation.graphql";
 import wretch from "wretch";
 import Link from "next/link";
-import { atom, useAtomValue } from "jotai";
+import { atom, useAtom, useAtomValue } from "jotai";
 
 const formSchema = z.object({
   token: z.string().min(26).max(26),
+});
+
+const verificationFormErrorMessageAtom = atom<GqlErrorStatus>({
+  error: null,
+  message: null,
+  messages: null,
 });
 
 export function VerificationForm() {
@@ -33,10 +39,14 @@ export function VerificationForm() {
     setPathAtom(router.asPath);
   };
   const email = router.query["mail"] ?? "";
-  const [status, setStatus] = useState<GqlErrorStatus>({
-    error: null,
-    message: null,
-  });
+  const [status, setStatus] = useAtom(verificationFormErrorMessageAtom);
+  verificationFormErrorMessageAtom.onMount = () => {
+    setStatus({
+      error: null,
+      message: null,
+      messages: null,
+    });
+  };
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -58,9 +68,18 @@ export function VerificationForm() {
           ...status,
           error: true,
           message: err.message,
+          messages: null,
         }));
       },
       onCompleted: (res, err) => {
+        if (err) {
+          setStatus((status) => ({
+            ...status,
+            error: true,
+            message: null,
+            messages: err,
+          }));
+        }
         const tokenPlainText = res.activateUser?.tokenPlainText;
         wretch(`http://localhost:4444/v1/tokens/set/${tokenPlainText}`)
           .options({ credentials: "include", mode: "cors" })
@@ -104,7 +123,7 @@ export function VerificationForm() {
               >
                 Didn't receive token?
               </Link>
-              <p>{status.message && parseGqlError(status.message)}</p>
+              <FormErrorMessage status={status} />
               <Button type="submit" disabled={isMutationInFlight}>
                 Submit
               </Button>
