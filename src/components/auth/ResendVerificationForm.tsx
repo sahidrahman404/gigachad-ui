@@ -11,23 +11,37 @@ import {
 } from "../ui/form";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
-import { GqlErrorStatus, parseGqlError } from "@/lib/error";
-import { useState } from "react";
+import {
+  FormErrorMessage,
+  GqlErrorStatus,
+  parseGqlError,
+} from "@/lib/FormErrorMessage";
 import { useRouter } from "next/router";
 import { useMutation } from "react-relay";
 import CreateActivationTokenMutation from "@/gql/CreateActivationToken";
 import { CreateActivationTokenMutation as CreateActivationTokenMutationType } from "../../../__generated__/CreateActivationTokenMutation.graphql";
+import { atom, useAtom } from "jotai";
 
 const formSchema = z.object({
   email: z.string().email(),
 });
 
+const resendVerificationnFormErrorMessageAtom = atom<GqlErrorStatus>({
+  error: null,
+  message: null,
+  messages: null,
+});
+
 export function ResendVerificationForm() {
   const router = useRouter();
-  const [status, setStatus] = useState<GqlErrorStatus>({
-    error: null,
-    message: null,
-  });
+  const [status, setStatus] = useAtom(resendVerificationnFormErrorMessageAtom);
+  resendVerificationnFormErrorMessageAtom.onMount = () => {
+    setStatus({
+      error: null,
+      message: null,
+      messages: null,
+    });
+  };
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -52,9 +66,18 @@ export function ResendVerificationForm() {
           ...status,
           error: true,
           message: err.message,
+          messages: null,
         }));
       },
-      onCompleted: (res, err) => {
+      onCompleted: (_res, err) => {
+        if (err) {
+          setStatus((status) => ({
+            ...status,
+            error: true,
+            message: null,
+            messages: err,
+          }));
+        }
         router.push(`/auth/verify?mail=${values.email}`);
       },
     });
@@ -87,7 +110,7 @@ export function ResendVerificationForm() {
                   </FormItem>
                 )}
               />
-              <p>{status.message && parseGqlError(status.message)}</p>
+              <FormErrorMessage status={status} />
               <Button type="submit" disabled={isMutationInFlight}>
                 Submit
               </Button>
