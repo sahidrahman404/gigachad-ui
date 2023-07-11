@@ -73,6 +73,7 @@ export function ResendVerificationForm() {
             message: null,
             messages: err,
           }));
+          return;
         }
         router.push(`/auth/verify?mail=${values.email}`);
       },

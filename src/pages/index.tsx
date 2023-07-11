@@ -1,9 +1,13 @@
 import Hero from "@/components/hero";
-import { useLazyLoadQuery } from "react-relay";
-import { GetUserQuery as GetUserQueryType } from "../../__generated__/GetUserQuery.graphql";
-import GetUserQuery from "@/gql/GetUser";
+import { useGetUserQueryRef } from "@/lib/UseGetUser";
+import { Suspense } from "react";
 
 export default function Home() {
-  const user = useLazyLoadQuery<GetUserQueryType>(GetUserQuery, {});
-  return <Hero user={user} />;
+  const getUserQueryRef = useGetUserQueryRef();
+
+  return (
+    <Suspense fallback="loading...">
+      {getUserQueryRef && <Hero getUserQueryRef={getUserQueryRef} />}
+    </Suspense>
+  );
 }

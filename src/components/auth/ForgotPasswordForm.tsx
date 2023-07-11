@@ -73,6 +73,7 @@ export function ForgotPasswordForm() {
             message: null,
             messages: err,
           }));
+          return;
         }
         router.push(`/auth/reset-password`);
       },

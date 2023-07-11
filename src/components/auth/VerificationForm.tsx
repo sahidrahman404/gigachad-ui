@@ -79,6 +79,7 @@ export function VerificationForm() {
             message: null,
             messages: err,
           }));
+          return;
         }
         const tokenPlainText = res.activateUser?.tokenPlainText;
         wretch(`http://localhost:4444/v1/tokens/set/${tokenPlainText}`)

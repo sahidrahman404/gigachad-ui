@@ -83,6 +83,7 @@ export function SignupForm() {
       onCompleted: (res, err) => {
         if (!err) {
           router.push(`auth/verify?mail=${res.createUser.email}`);
+          return;
         }
         setStatus((status) => ({
           ...status,

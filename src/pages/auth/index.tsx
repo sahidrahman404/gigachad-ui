@@ -2,19 +2,40 @@ import { SigninForm } from "@/components/auth/SigninForm";
 import { SignupForm } from "@/components/auth/SignupForm";
 import AuthLayout from "@/components/auth/AuthLayout";
 import { useRouter } from "next/router";
-import { ReactNode } from "react";
+import { ReactNode, Suspense, useEffect, useMemo } from "react";
 import GetUserQuery from "@/gql/GetUser";
-import { useLazyLoadQuery } from "react-relay";
+import { PreloadedQuery, usePreloadedQuery } from "react-relay";
 import { GetUserQuery as GetUserQueryType } from "../../../__generated__/GetUserQuery.graphql";
 import { ForgotPasswordForm } from "@/components/auth/ForgotPasswordForm";
+import { useGetUserQueryRef } from "@/lib/UseGetUser";
 
 export default function AuthPage() {
-  const router = useRouter();
-  const user = useLazyLoadQuery<GetUserQueryType>(GetUserQuery, {});
+  const getUserQueryRef = useGetUserQueryRef();
+  return (
+    <Suspense fallback="loading...">
+      {getUserQueryRef && <Auth getUserQueryRef={getUserQueryRef} />}
+    </Suspense>
+  );
+}
 
-  if (user.getUser?.activated === 1) {
-    router.push(`/dashboard`);
-  }
+interface AuthProps {
+  getUserQueryRef: PreloadedQuery<GetUserQueryType, Record<string, unknown>>;
+}
+
+function Auth(props: AuthProps) {
+  const router = useRouter();
+  const user = usePreloadedQuery<GetUserQueryType>(
+    GetUserQuery,
+    props.getUserQueryRef
+  );
+
+  const userMemo = useMemo(() => user, [user.getUser?.id]);
+
+  useEffect(() => {
+    if (user.getUser?.activated === 1) {
+      router.push(`/dashboard`);
+    }
+  }, [userMemo]);
 
   const isForgot = router.query["forgot"] ?? "";
   if (isForgot) {
@@ -28,7 +49,6 @@ export default function AuthPage() {
   if (params === "signin") {
     return <SigninForm />;
   }
-  return null;
 }
 
 AuthPage.getLayout = function getLayout(page: ReactNode) {

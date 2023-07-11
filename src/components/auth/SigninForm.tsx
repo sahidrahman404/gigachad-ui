@@ -13,14 +13,15 @@ import {
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { FormErrorMessage, GqlErrorStatus } from "@/lib/FormErrorMessage";
-import { useMemo } from "react";
-import { useMutation } from "react-relay";
+import { useEffect, useMemo, useState } from "react";
+import { useMutation, useQueryLoader } from "react-relay";
 import { useRouter } from "next/router";
 import CreateAuthenticationTokenMutation from "@/gql/CreateAuthenticationToken";
 import wretch from "wretch";
 import { CreateAuthenticationTokenMutation as CreateAuthenticationTokenMutationToken } from "../../../__generated__/CreateAuthenticationTokenMutation.graphql";
 import { atom, useAtom, useAtomValue } from "jotai";
 import { ShowPasswordCheckBox, showPasswordAtom } from "./ShowPasswordCheckBox";
+import GetUserQuery from "@/gql/GetUser";
 
 const formSchema = z.object({
   email: z.string().email(),
@@ -62,10 +63,12 @@ export function SigninForm() {
       messages: null,
     });
   };
+
   const [commitMutation, isMutationInFlight] =
     useMutation<CreateAuthenticationTokenMutationToken>(
       CreateAuthenticationTokenMutation
     );
+
   function onSubmit(values: z.infer<typeof formSchema>) {
     commitMutation({
       variables: {
@@ -90,16 +93,21 @@ export function SigninForm() {
             message: null,
             messages: err,
           }));
+          return;
         }
 
         if (res.createAuthenticationToken?.user.activated === 1) {
           const tokenPlainText = res.createAuthenticationToken?.tokenPlainText;
-          wretch(`http://localhost:4444/v1/tokens/set/${tokenPlainText}`)
-            .options({ credentials: "include", mode: "cors" })
-            .get()
-            .json((res) => console.log(res));
-          router.push(`/dashboard`);
-          return;
+          const fetchData = async (tokenPlainText: string) => {
+            await wretch(
+              `http://localhost:4444/v1/tokens/set/${tokenPlainText}`
+            )
+              .options({ credentials: "include", mode: "cors" })
+              .get()
+              .json((res) => console.log(res, "goblog"));
+            router.push(`/dashboard`).then(() => router.reload());
+          };
+          fetchData(tokenPlainText);
         }
 
         if (res.createAuthenticationToken?.user.activated === 0) {

@@ -1,9 +1,14 @@
 import Link from "next/link";
 import { Button } from "./ui/button";
-import { GetUserQuery$data } from "../../__generated__/GetUserQuery.graphql";
+import {
+  GetUserQuery as GetUserQueryType,
+  GetUserQuery$data,
+} from "../../__generated__/GetUserQuery.graphql";
 import { getRedirectUrl } from "@/lib/utils";
 import { atom, useAtomValue } from "jotai";
 import { useMemo } from "react";
+import { PreloadedQuery, usePreloadedQuery } from "react-relay";
+import GetUserQuery from "@/gql/GetUser";
 
 function useRedirect(data: GetUserQuery$data) {
   const redirectUrlAtom = useMemo(() => atom(""), []);
@@ -22,11 +27,12 @@ function useRedirect(data: GetUserQuery$data) {
 }
 
 interface Props {
-  user: GetUserQuery$data;
+  getUserQueryRef: PreloadedQuery<GetUserQueryType, Record<string, unknown>>;
 }
 
 export default function Hero(props: Props) {
-  const redirect = useRedirect(props.user);
+  const user = usePreloadedQuery(GetUserQuery, props.getUserQueryRef);
+  const redirect = useRedirect(user);
 
   return (
     <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8">

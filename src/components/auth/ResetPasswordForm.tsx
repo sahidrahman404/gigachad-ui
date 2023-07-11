@@ -86,6 +86,7 @@ export function ResetPasswordForm() {
             message: null,
             messages: err,
           }));
+          return;
         }
         router.push(`/auth?mode=signin&reset=success`);
       },
