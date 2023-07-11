@@ -10,7 +10,7 @@ export default function ResetPasswordPage() {
   const user = useLazyLoadQuery<GetUserQueryType>(GetUserQuery, {});
 
   if (user.getUser?.activated === 1) {
-    router.push(`/dashboard/${user.getUser?.username}`);
+    router.push(`/dashboard`);
   }
 
   return <ResetPasswordForm />;

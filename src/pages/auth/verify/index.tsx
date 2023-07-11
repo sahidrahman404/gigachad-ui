@@ -12,7 +12,7 @@ export default function VerificationPage() {
   const user = useLazyLoadQuery<GetUserQueryType>(GetUserQuery, {});
 
   if (user.getUser?.activated === 1) {
-    router.push(`/dashboard/${user.getUser?.username}`);
+    router.push(`/dashboard`);
   }
 
   const isResend = router.query["resend"] ?? "";

@@ -12,7 +12,7 @@ export function getRedirectUrl(data: GetUserQuery$data | null): string {
   }
 
   if (data?.getUser && data.getUser.activated === 1) {
-    return `/dashboard/${data.getUser.username}`;
+    return `/dashboard`;
   }
   return "";
 }

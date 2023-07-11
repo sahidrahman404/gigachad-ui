@@ -13,7 +13,7 @@ export default function AuthPage() {
   const user = useLazyLoadQuery<GetUserQueryType>(GetUserQuery, {});
 
   if (user.getUser?.activated === 1) {
-    router.push(`/dashboard/${user.getUser?.username}`);
+    router.push(`/dashboard`);
   }
 
   const isForgot = router.query["forgot"] ?? "";
