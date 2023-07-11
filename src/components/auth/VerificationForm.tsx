@@ -121,7 +121,7 @@ export function VerificationForm() {
                 className="text-sm text-blue-600 decoration-2 hover:underline font-medium block"
                 href={`${path}&resend=true`}
               >
-                Didn't receive token?
+                Didn&apos;t receive token?
               </Link>
               <FormErrorMessage status={status} />
               <Button type="submit" disabled={isMutationInFlight}>

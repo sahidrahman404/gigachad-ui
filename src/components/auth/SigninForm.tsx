@@ -125,7 +125,7 @@ export function SigninForm() {
             </p>
           ) : (
             <p className={signInTitleClass}>
-              Don&#39;t have an account yet?{" "}
+              Don&apos;t have an account yet?{" "}
               <Link
                 className="text-blue-600 decoration-2 hover:underline font-medium"
                 href="auth/?mode=signup"

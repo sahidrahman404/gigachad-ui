@@ -11,11 +11,7 @@ import {
 } from "../ui/form";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
-import {
-  FormErrorMessage,
-  GqlErrorStatus,
-  parseGqlError,
-} from "@/lib/FormErrorMessage";
+import { FormErrorMessage, GqlErrorStatus } from "@/lib/FormErrorMessage";
 import { useRouter } from "next/router";
 import { useMutation } from "react-relay";
 import CreateActivationTokenMutation from "@/gql/CreateActivationToken";

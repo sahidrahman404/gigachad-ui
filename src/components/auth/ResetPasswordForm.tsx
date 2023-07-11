@@ -123,7 +123,7 @@ export function ResetPasswordForm() {
                 className="text-[0.8rem] text-blue-600 decoration-2 hover:underline font-medium block"
                 href={`/auth?forgot=true`}
               >
-                Didn't receive token?
+                Didn&apos;t receive token?
               </Link>
               <FormField
                 control={form.control}
