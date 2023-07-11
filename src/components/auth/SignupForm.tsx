@@ -13,13 +13,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation } from "react-relay";
 import Link from "next/link";
-import { useState } from "react";
-import { GqlErrorStatus, parseGqlError } from "@/lib/error";
+import { FormErrorMessage, GqlErrorStatus } from "@/lib/FormErrorMessage";
 import { useRouter } from "next/router";
 import CreateUserMutation from "@/gql/CreateUser";
 import { CreateUserMutation as CreateUserMutationType } from "../../../__generated__/CreateUserMutation.graphql";
 import { ShowPasswordCheckBox, showPasswordAtom } from "./ShowPasswordCheckBox";
-import { useAtomValue } from "jotai";
+import { atom, useAtom, useAtomValue } from "jotai";
 
 const formSchema = z
   .object({
@@ -34,13 +33,23 @@ const formSchema = z
     path: ["confirmPassword"],
   });
 
+const signUpFormErrorMessageAtom = atom<GqlErrorStatus>({
+  error: null,
+  message: null,
+  messages: null,
+});
+
 export function SignupForm() {
   const router = useRouter();
   const showPassword = useAtomValue(showPasswordAtom);
-  const [status, setStatus] = useState<GqlErrorStatus>({
-    error: null,
-    message: null,
-  });
+  const [status, setStatus] = useAtom(signUpFormErrorMessageAtom);
+  signUpFormErrorMessageAtom.onMount = () => {
+    setStatus({
+      error: null,
+      message: null,
+      messages: null,
+    });
+  };
   const [commitMutation, isMutationInFlight] =
     useMutation<CreateUserMutationType>(CreateUserMutation);
   const form = useForm<z.infer<typeof formSchema>>({
@@ -68,12 +77,19 @@ export function SignupForm() {
           ...status,
           error: true,
           message: err.message,
+          messages: null,
         }));
       },
       onCompleted: (res, err) => {
         if (!err) {
           router.push(`auth/verify?mail=${res.createUser.email}`);
         }
+        setStatus((status) => ({
+          ...status,
+          error: true,
+          message: null,
+          messages: err,
+        }));
       },
     });
   }
@@ -180,7 +196,7 @@ export function SignupForm() {
                 )}
               />
               <ShowPasswordCheckBox />
-              <p>{status.message && parseGqlError(status.message)}</p>
+              <FormErrorMessage status={status} />
               <Button type="submit" disabled={isMutationInFlight}>
                 Submit
               </Button>
