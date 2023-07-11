@@ -13,7 +13,7 @@ import {
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { FormErrorMessage, GqlErrorStatus } from "@/lib/FormErrorMessage";
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { useMutation } from "react-relay";
 import { useRouter } from "next/router";
 import CreateAuthenticationTokenMutation from "@/gql/CreateAuthenticationToken";
@@ -56,13 +56,11 @@ export function SigninForm() {
 
   const [status, setStatus] = useAtom(signInErrorMessageAtom);
   signInErrorMessageAtom.onMount = () => {
-    if (isPasswordReseted) {
-      setStatus({
-        error: null,
-        message: null,
-        messages: null,
-      });
-    }
+    setStatus({
+      error: null,
+      message: null,
+      messages: null,
+    });
   };
   const [commitMutation, isMutationInFlight] =
     useMutation<CreateAuthenticationTokenMutationToken>(
