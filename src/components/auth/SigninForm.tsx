@@ -12,19 +12,25 @@ import {
 } from "../ui/form";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
-import { GqlErrorStatus, parseGqlError } from "@/lib/error";
-import { useMemo, useState } from "react";
+import { FormErrorMessage, GqlErrorStatus } from "@/lib/FormErrorMessage";
+import { useEffect, useMemo } from "react";
 import { useMutation } from "react-relay";
 import { useRouter } from "next/router";
 import CreateAuthenticationTokenMutation from "@/gql/CreateAuthenticationToken";
 import wretch from "wretch";
 import { CreateAuthenticationTokenMutation as CreateAuthenticationTokenMutationToken } from "../../../__generated__/CreateAuthenticationTokenMutation.graphql";
-import { atom, useAtomValue } from "jotai";
+import { atom, useAtom, useAtomValue } from "jotai";
 import { ShowPasswordCheckBox, showPasswordAtom } from "./ShowPasswordCheckBox";
 
 const formSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8).max(72),
+});
+
+const signInErrorMessageAtom = atom<GqlErrorStatus>({
+  error: null,
+  message: null,
+  messages: null,
 });
 
 export function SigninForm() {
@@ -48,10 +54,16 @@ export function SigninForm() {
     },
   });
 
-  const [status, setStatus] = useState<GqlErrorStatus>({
-    error: null,
-    message: null,
-  });
+  const [status, setStatus] = useAtom(signInErrorMessageAtom);
+  signInErrorMessageAtom.onMount = () => {
+    if (isPasswordReseted) {
+      setStatus({
+        error: null,
+        message: null,
+        messages: null,
+      });
+    }
+  };
   const [commitMutation, isMutationInFlight] =
     useMutation<CreateAuthenticationTokenMutationToken>(
       CreateAuthenticationTokenMutation
@@ -69,18 +81,26 @@ export function SigninForm() {
           ...status,
           error: true,
           message: err.message,
+          messages: null,
         }));
       },
-      onCompleted: (res) => {
+      onCompleted: (res, err) => {
+        if (err) {
+          setStatus((status) => ({
+            ...status,
+            error: true,
+            message: null,
+            messages: err,
+          }));
+        }
+
         if (res.createAuthenticationToken?.user.activated === 1) {
           const tokenPlainText = res.createAuthenticationToken?.tokenPlainText;
           wretch(`http://localhost:4444/v1/tokens/set/${tokenPlainText}`)
             .options({ credentials: "include", mode: "cors" })
             .get()
             .json((res) => console.log(res));
-          router.push(
-            `/dashboard/${res.createAuthenticationToken.user.username}`
-          );
+          router.push(`/dashboard`);
           return;
         }
 
@@ -163,7 +183,7 @@ export function SigninForm() {
               >
                 Forgot password?
               </Link>
-              <p>{status.message && parseGqlError(status.message)}</p>
+              <FormErrorMessage status={status} />
               <Button type="submit" disabled={isMutationInFlight}>
                 Submit
               </Button>
