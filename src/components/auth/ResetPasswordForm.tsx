@@ -11,14 +11,18 @@ import {
 } from "../ui/form";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
-import { GqlErrorStatus, parseGqlError } from "@/lib/error";
+import {
+  FormErrorMessage,
+  GqlErrorStatus,
+  parseGqlError,
+} from "@/lib/FormErrorMessage";
 import { useState } from "react";
 import { useRouter } from "next/router";
 import { useMutation } from "react-relay";
 import UpdatetUserPasswordMutation from "@/gql/UpdateUserPassword";
 import { UpdateUserPasswordMutation } from "../../../__generated__/UpdateUserPasswordMutation.graphql";
 import Link from "next/link";
-import { useAtomValue } from "jotai";
+import { atom, useAtom, useAtomValue } from "jotai";
 import { ShowPasswordCheckBox, showPasswordAtom } from "./ShowPasswordCheckBox";
 
 const formSchema = z
@@ -32,15 +36,25 @@ const formSchema = z
     path: ["confirmPassword"],
   });
 
+const resetPasswordErrorMessageAtom = atom<GqlErrorStatus>({
+  error: null,
+  message: null,
+  messages: null,
+});
+
 export function ResetPasswordForm() {
   const router = useRouter();
 
   const showPassword = useAtomValue(showPasswordAtom);
 
-  const [status, setStatus] = useState<GqlErrorStatus>({
-    error: null,
-    message: null,
-  });
+  const [status, setStatus] = useAtom(resetPasswordErrorMessageAtom);
+  resetPasswordErrorMessageAtom.onMount = () => {
+    setStatus({
+      error: null,
+      message: null,
+      messages: null,
+    });
+  };
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -66,9 +80,18 @@ export function ResetPasswordForm() {
           ...status,
           error: true,
           message: err.message,
+          messages: null,
         }));
       },
-      onCompleted: (_res, _err) => {
+      onCompleted: (_res, err) => {
+        if (err) {
+          setStatus((status) => ({
+            ...status,
+            error: true,
+            message: null,
+            messages: err,
+          }));
+        }
         router.push(`/auth?mode=signin&reset=success`);
       },
     });
@@ -140,7 +163,7 @@ export function ResetPasswordForm() {
                 )}
               />
               <ShowPasswordCheckBox />
-              <p>{status.message && parseGqlError(status.message)}</p>
+              <FormErrorMessage status={status} />
               <Button type="submit" disabled={isMutationInFlight}>
                 Submit
               </Button>
