@@ -6,6 +6,7 @@ import {
   FetchFunction,
 } from "relay-runtime";
 import wretch from "wretch";
+
 const HTTP_ENDPOINT = "http://localhost:4444";
 
 const tokenApi = wretch(`${HTTP_ENDPOINT}/v1/tokens/get`)
@@ -22,30 +23,27 @@ const gqlApi = wretch(`${HTTP_ENDPOINT}/query`)
   .resolve((res) => res.json());
 
 const fetchFn: FetchFunction = async (request, variables) => {
-  let token;
+  let token: null | { token: string };
   try {
-    token = await tokenApi.get();
+    token = (await tokenApi.get()) as { token: string };
   } catch (err) {
+    token = null;
     console.log("CANNOT GET HTTP ACCESS TOKEN");
   }
-  if (!token) {
-    const resp = (await gqlApi
-      // @ts-ignore
-      .post({
-        query: request.text, // <-- The GraphQL document composed by Relay
-        variables,
-      })) as any;
 
-    return resp;
-  }
-  // @ts-ignore
-  const resp = (await gqlApi
-    // @ts-ignore
-    .auth(`Bearer ${token["token"]}`)
-    .post({
+  if (token === null) {
+    const resp = (await gqlApi.post({
       query: request.text, // <-- The GraphQL document composed by Relay
       variables,
     })) as any;
+
+    return resp;
+  }
+
+  const resp = (await gqlApi.auth(`Bearer ${token["token"]}`).post({
+    query: request.text, // <-- The GraphQL document composed by Relay
+    variables,
+  })) as any;
 
   return resp;
 };
