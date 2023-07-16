@@ -4,8 +4,6 @@ import { ReactNode, useState } from "react";
 
 export function DashboardLayout({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [isDashboardFocus, setIsDashboardFocus] = useState(false);
-  const [isAccountFocus, setIsAccountFocus] = useState(false);
 
   const currentRoute = useRouter().asPath;
 
