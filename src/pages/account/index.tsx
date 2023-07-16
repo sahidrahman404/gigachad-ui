@@ -4,7 +4,7 @@ import { GetUserQuery as GetUserQueryType } from "../../../__generated__/GetUser
 import { useGetUserQueryRef } from "@/lib/UseGetUser";
 import { ReactNode, Suspense, useEffect, useMemo } from "react";
 import { useRouter } from "next/router";
-import { DashboardLayout } from "@/components/dashboard/dashboardLayout";
+import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 
 export default function AccountPage() {
   const getUserQueryRef = useGetUserQueryRef();
